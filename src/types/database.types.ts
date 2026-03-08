@@ -16,6 +16,9 @@ export interface User {
   email: string
   full_name: string | null
   avatar_url: string | null
+  cover_photo_url: string | null
+  bio: string | null
+  username: string | null
   phone: string | null
   city: string | null
   role: UserRole
