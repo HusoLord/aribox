@@ -36,11 +36,8 @@ CREATE POLICY "Kullanıcılar kendi profilini güncelleyebilir"
   ON public.users FOR UPDATE
   USING (auth.uid() = id);
 
-CREATE POLICY "Admin tüm kullanıcıları görebilir"
-  ON public.users FOR ALL
-  USING (
-    EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
-  );
+-- NOT: users tablosunda admin policy sonsuz döngüye yol açar (self-referencing).
+-- Admin işlemleri service role (createAdminClient) ile yapılır, bu policy gerekli değil.
 
 -- ============================================
 -- PRODUCER PROFILES (Herkese açık okuma)
