@@ -48,9 +48,9 @@ export default async function DashboardPage() {
           </p>
         </div>
         <Badge variant={isPremium ? 'default' : 'secondary'} className={isPremium ? 'bg-amber-500' : ''}>
-          {profile?.role === 'free' ? 'Ücretsiz Plan' :
-           profile?.role === 'premium' ? 'Premium' :
-           profile?.role === 'producer' ? 'Üretici' : 'Admin'}
+          {!profile || profile.role === 'free' ? 'Ücretsiz Plan' :
+           profile.role === 'premium' ? 'Premium' :
+           profile.role === 'producer' ? 'Üretici' : 'Admin'}
         </Badge>
       </div>
 
