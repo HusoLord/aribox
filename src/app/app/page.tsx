@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Bot, Home, Newspaper, ShoppingBag, Cloud } from 'lucide-react'
+import { Bot, Home, Newspaper, ShoppingBag, Cloud, CloudSun } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
@@ -31,6 +31,7 @@ export default async function DashboardPage() {
     { href: '/app/map', icon: Cloud, label: 'Nektar Haritası', color: 'bg-blue-50 text-blue-700' },
     { href: '/app/news', icon: Newspaper, label: 'Haberler', color: 'bg-purple-50 text-purple-700' },
     { href: '/app/marketplace', icon: ShoppingBag, label: 'Marketplace', color: 'bg-pink-50 text-pink-700' },
+    { href: '/app/weather', icon: CloudSun, label: 'Hava Durumu', color: 'bg-sky-50 text-sky-700' },
   ]
 
   const isPremium = profile?.role === 'premium' || profile?.role === 'producer' || profile?.role === 'admin'

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -10,7 +11,8 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
     if (!error && data.user) {
-      await supabase.from('users').upsert(
+      const admin = createAdminClient()
+      await admin.from('users').upsert(
         {
           id: data.user.id,
           email: data.user.email!,
