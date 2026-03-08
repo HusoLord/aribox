@@ -192,3 +192,10 @@ export interface NectarMapEntry {
   created_at: string
   updated_at: string
 }
+
+export interface UserFollow {
+  id: string
+  follower_id: string
+  following_id: string
+  created_at: string
+}

@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Bot, MessageSquare, ShoppingBag, User } from 'lucide-react'
+import { LayoutDashboard, Rss, MessageSquare, Users, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/app', icon: LayoutDashboard, label: 'Ana Sayfa', exact: true },
-  { href: '/app/ai', icon: Bot, label: 'AI Asistan' },
+  { href: '/app/feed', icon: Rss, label: 'Akış' },
   { href: '/app/forum', icon: MessageSquare, label: 'Forum' },
-  { href: '/app/marketplace', icon: ShoppingBag, label: 'Market' },
+  { href: '/app/users', icon: Users, label: 'Arıcılar' },
   { href: '/app/profile', icon: User, label: 'Profil' },
 ]
 

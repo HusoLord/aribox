@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, MessageSquare } from 'lucide-react'
+import FollowButton from '@/components/FollowButton'
 
 const ROLE_LABELS: Record<string, string> = {
   free: 'Ücretsiz',
@@ -30,23 +31,35 @@ export default async function UserProfilePage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { count: hiveCount }, { count: forumCount }, { data: recentTopics }] = await Promise.all([
+  const [
+    { data: profile },
+    { count: hiveCount },
+    { count: forumCount },
+    { data: recentTopics },
+    { count: followerCount },
+    { count: followingCount },
+    { data: followData },
+  ] = await Promise.all([
     supabase.from('users').select('id, full_name, avatar_url, cover_photo_url, bio, username, city, role, created_at').eq('id', id).single(),
     supabase.from('hives').select('*', { count: 'exact', head: true }).eq('user_id', id).eq('status', 'active'),
     supabase.from('forum_topics').select('*', { count: 'exact', head: true }).eq('user_id', id),
     supabase.from('forum_topics').select('id, title, reply_count, created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(5),
+    supabase.from('user_follows').select('*', { count: 'exact', head: true }).eq('following_id', id),
+    supabase.from('user_follows').select('*', { count: 'exact', head: true }).eq('follower_id', id),
+    supabase.from('user_follows').select('id').eq('follower_id', user.id).eq('following_id', id).maybeSingle(),
   ])
 
   if (!profile) notFound()
 
   const isOwnProfile = user.id === id
+  const isFollowing = !!followData
   const initials = profile.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'U'
 
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
       {/* Kapak + Avatar */}
       <div className="relative">
-        <div className="h-48 rounded-xl overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200">
+        <div className="h-48 rounded-xl overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200 relative">
           {profile.cover_photo_url && (
             <Image src={profile.cover_photo_url} alt="Kapak" fill className="object-cover" />
           )}
@@ -72,20 +85,30 @@ export default async function UserProfilePage({
               <MapPin className="h-3 w-3" /> {profile.city}
             </p>
           )}
-          <div className="mt-1">
+          <div className="mt-1 flex items-center gap-2">
             <Badge className={ROLE_COLORS[profile.role]}>{ROLE_LABELS[profile.role]}</Badge>
+          </div>
+          {/* Takipçi sayıları */}
+          <div className="flex gap-4 mt-2 text-sm">
+            <span><strong>{followerCount || 0}</strong> <span className="text-muted-foreground">takipçi</span></span>
+            <span><strong>{followingCount || 0}</strong> <span className="text-muted-foreground">takip</span></span>
           </div>
           {profile.bio && <p className="text-sm text-muted-foreground mt-2 max-w-sm">{profile.bio}</p>}
         </div>
-        {isOwnProfile ? (
-          <Link href="/app/profile" className="text-sm border rounded-lg px-3 h-8 flex items-center hover:bg-muted transition-colors">
-            Düzenle
-          </Link>
-        ) : (
-          <Link href={`/app/messages?to=${id}`} className="flex items-center gap-1.5 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg px-3 h-8 transition-colors">
-            <MessageSquare className="h-3.5 w-3.5" /> Mesaj Gönder
-          </Link>
-        )}
+        <div className="flex flex-col gap-2 items-end">
+          {isOwnProfile ? (
+            <Link href="/app/profile" className="text-sm border rounded-lg px-3 h-8 flex items-center hover:bg-muted transition-colors">
+              Düzenle
+            </Link>
+          ) : (
+            <>
+              <FollowButton targetUserId={id} initialFollowing={isFollowing} />
+              <Link href={`/app/messages?to=${id}`} className="flex items-center gap-1.5 text-sm border rounded-lg px-3 h-8 hover:bg-muted transition-colors">
+                <MessageSquare className="h-3.5 w-3.5" /> Mesaj
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {/* İstatistikler */}

@@ -9,7 +9,7 @@ Bu doküman, ARIBox platformunu bir arıcılık yönetim aracından Türkiye'nin
 | Aşama | Konu | Durum |
 |-------|------|-------|
 | Aşama 1 | Gelişmiş Kullanıcı Profilleri | ✅ TAMAMLANDI |
-| Aşama 2 | Takip / Bağlantı Sistemi | Bekliyor |
+| Aşama 2 | Takip / Bağlantı Sistemi | ✅ TAMAMLANDI |
 | Aşama 3 | Kategori Bazlı AI Asistan | Bekliyor |
 | Aşama 4 | İçerik / Haber + Admin CMS | Bekliyor |
 | Aşama 5 | Marketplace Sosyalleştirme | Bekliyor |
@@ -37,12 +37,23 @@ Bu doküman, ARIBox platformunu bir arıcılık yönetim aracından Türkiye'nin
 
 ---
 
-## Aşama 2: Takip / Bağlantı Sistemi
+## Aşama 2: Takip / Bağlantı Sistemi ✅ TAMAMLANDI
 
-### Planlanacaklar
-- [ ] **Arkadaş Ekleme / Takip Etme:** Kullanıcı adı veya profil sayfasından tek tıkla takip.
-- [ ] **Sosyal Akış (Timeline):** Takip edilen kişilerin yeni forum konuları, ürün ilanları.
-- [ ] **Direkt Mesajlaşma (DM):** Mevcut mesaj altyapısının iyileştirilmesi.
+> Tamamlanma tarihi: 2026-03-09
+
+### Yapılanlar
+- [x] **Takip Et / Bırak:** Profil sayfasından tek tıkla takip, anlık güncelleme.
+- [x] **Takipçi / Takip Sayıları:** Public profil sayfasında takipçi ve takip edilen sayıları.
+- [x] **Arıcıları Keşfet:** `/app/users` — ad/kullanıcı adı ile arama, anlık filtre, takip butonu.
+- [x] **Sosyal Akış:** `/app/feed` — takip edilenlerin yeni forum konuları.
+- [x] **Navigasyon:** Sidebar ve BottomNav'a Sosyal Akış + Arıcılar linkleri eklendi.
+
+### Teknik Detaylar
+- `supabase/migrations/006_follow_system.sql` — user_follows tablosu + RLS
+- `src/app/api/follow/route.ts` — POST (takip et) / DELETE (bırak)
+- `src/components/FollowButton.tsx` — yeniden kullanılabilir takip butonu
+- `src/app/app/users/page.tsx` — arıcı arama sayfası
+- `src/app/app/feed/page.tsx` — sosyal akış sayfası
 
 ---
 

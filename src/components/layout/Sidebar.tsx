@@ -4,13 +4,15 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Bot, Newspaper, MessageSquare, ShoppingBag,
-  Home, Map, Cloud, Bell, Settings, Crown, BarChart3, Mail
+  Home, Map, Cloud, Bell, Settings, Crown, BarChart3, Mail, Users, Rss
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUser } from '@/hooks/useUser'
 
 const mainNav = [
   { href: '/app', icon: LayoutDashboard, label: 'Ana Sayfa', exact: true },
+  { href: '/app/feed', icon: Rss, label: 'Sosyal Akış' },
+  { href: '/app/users', icon: Users, label: 'Arıcılar' },
   { href: '/app/ai', icon: Bot, label: 'AI Asistan' },
   { href: '/app/news', icon: Newspaper, label: 'Haberler' },
   { href: '/app/forum', icon: MessageSquare, label: 'Forum' },
