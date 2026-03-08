@@ -24,8 +24,7 @@ export default function AppHeader() {
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.refresh()
-    router.push('/login')
+    window.location.href = '/login'
   }
 
   const initials = profile?.full_name
