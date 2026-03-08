@@ -44,9 +44,9 @@ export default async function ProfilePage() {
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Üyelik</span>
             <Badge className="bg-amber-500">
-              {profile?.role === 'free' ? 'Ücretsiz' :
-               profile?.role === 'premium' ? 'Premium' :
-               profile?.role === 'producer' ? 'Üretici' : 'Admin'}
+              {!profile || profile.role === 'free' ? 'Ücretsiz' :
+               profile.role === 'premium' ? 'Premium' :
+               profile.role === 'producer' ? 'Üretici' : 'Admin'}
             </Badge>
           </div>
           <div className="flex items-center justify-between">
