@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || 'mock_key' })
 
 const DIAGNOSE_PROMPT = `Sen bir arıcılık ve arı sağlığı uzmanısın. Sana gönderilen fotoğrafı analiz et ve Türkçe olarak yanıt ver.
 

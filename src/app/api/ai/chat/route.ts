@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { FREE_DAILY_QUESTION_LIMIT } from '@/lib/constants'
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: process.env.ANTHROPIC_API_KEY || 'mock_key',
 })
 
 const SYSTEM_PROMPT = `Sen ARIBox platformunun yapay zeka asistanı "ARI"sın. Türkiye'nin önde gelen arıcılık uzmanısın.

@@ -25,8 +25,8 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
   const url = new URL(event.request.url)
 
-  // API isteklerini cache'leme
-  if (url.pathname.startsWith('/api/')) return
+  // API İsteklerini ve Auth Route'larını cache'leme
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) return
 
   event.respondWith(
     fetch(event.request)
