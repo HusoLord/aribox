@@ -15,11 +15,9 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 
 export default function AppHeader() {
   const { profile } = useUser()
-  const router = useRouter()
 
   async function handleLogout() {
     const supabase = createClient()
@@ -95,7 +93,7 @@ export default function AppHeader() {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+              <DropdownMenuItem onSelect={() => handleLogout()} className="text-red-600 cursor-pointer">
                 Çıkış Yap
               </DropdownMenuItem>
             </DropdownMenuContent>
