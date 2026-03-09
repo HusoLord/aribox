@@ -14,9 +14,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { useUser } from '@/hooks/useUser'
+import { ADMIN_EMAIL, DEFAULT_USER_ROLE } from '@/lib/constants'
 
 export default function AppHeader() {
   const { profile } = useUser()
+
+  const isAdmin = profile?.email === ADMIN_EMAIL || profile?.role === 'admin'
+  const effectiveRole =
+    !profile ? 'free' :
+    isAdmin ? 'admin' :
+    profile.role || DEFAULT_USER_ROLE
 
   async function handleLogout() {
     try {
@@ -71,11 +78,11 @@ export default function AppHeader() {
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium">{profile?.full_name}</p>
                     <p className="text-xs text-muted-foreground">{profile?.email}</p>
-                    {profile?.role && (
+                    {profile && (
                       <Badge variant="secondary" className="w-fit text-xs capitalize">
-                        {profile.role === 'free' ? 'Ücretsiz' :
-                          profile.role === 'premium' ? 'Premium' :
-                            profile.role === 'producer' ? 'Üretici' : 'Admin'}
+                        {effectiveRole === 'free' ? 'Ücretsiz' :
+                          effectiveRole === 'premium' ? 'Premium' :
+                            effectiveRole === 'producer' ? 'Üretici' : 'Admin'}
                       </Badge>
                     )}
                   </div>
@@ -93,7 +100,7 @@ export default function AppHeader() {
                   <Link href="/app/producer/dashboard" className="w-full">Üretici Paneli</Link>
                 </DropdownMenuItem>
               )}
-              {profile?.role === 'admin' && (
+              {isAdmin && (
                 <DropdownMenuItem>
                   <Link href="/admin" className="w-full">Admin Paneli</Link>
                 </DropdownMenuItem>

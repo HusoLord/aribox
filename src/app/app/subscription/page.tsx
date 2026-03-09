@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Check, Crown, Mail } from 'lucide-react'
+import { ADMIN_EMAIL, DEFAULT_USER_ROLE } from '@/lib/constants'
 
 export const metadata = { title: 'Abonelik' }
 
@@ -28,11 +29,17 @@ export default async function SubscriptionPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('role, full_name')
+    .select('role, full_name, email')
     .eq('id', user.id)
     .single()
 
-  const isPremium = profile?.role === 'premium' || profile?.role === 'producer' || profile?.role === 'admin'
+  const isAdmin = profile?.email === ADMIN_EMAIL || profile?.role === 'admin'
+  const effectiveRole =
+    !profile ? 'free' :
+    isAdmin ? 'admin' :
+    profile.role || DEFAULT_USER_ROLE
+
+  const isPremium = effectiveRole === 'premium' || effectiveRole === 'producer' || effectiveRole === 'admin'
 
   return (
     <div className="container max-w-2xl mx-auto p-4 space-y-6">
@@ -43,8 +50,8 @@ export default async function SubscriptionPage() {
           <CardContent className="p-6 text-center space-y-3">
             <Crown className="h-12 w-12 text-amber-500 mx-auto" />
             <Badge className="bg-amber-500 text-white text-base px-4 py-1">
-              {profile?.role === 'admin' ? 'Admin' :
-               profile?.role === 'producer' ? 'Üretici' : 'Premium Üye'}
+              {effectiveRole === 'admin' ? 'Admin' :
+               effectiveRole === 'producer' ? 'Üretici' : 'Premium Üye'}
             </Badge>
             <p className="text-amber-800">Tüm premium özelliklere erişiminiz aktif.</p>
           </CardContent>

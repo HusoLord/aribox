@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Bot, Home, Newspaper, ShoppingBag, Cloud, CloudSun } from 'lucide-react'
 import Link from 'next/link'
+import { ADMIN_EMAIL, DEFAULT_USER_ROLE } from '@/lib/constants'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -36,7 +37,13 @@ export default async function DashboardPage() {
     { href: '/app/weather', icon: CloudSun, label: 'Hava Durumu', color: 'bg-sky-50 text-sky-700' },
   ]
 
-  const isPremium = profile?.role === 'premium' || profile?.role === 'producer' || profile?.role === 'admin'
+  const isAdmin = profile?.email === ADMIN_EMAIL || profile?.role === 'admin'
+  const effectiveRole =
+    !profile ? 'free' :
+    isAdmin ? 'admin' :
+    profile.role || DEFAULT_USER_ROLE
+
+  const isPremium = effectiveRole === 'premium' || effectiveRole === 'producer' || effectiveRole === 'admin'
 
   return (
     <div className="container max-w-4xl mx-auto p-4 space-y-6">
@@ -51,9 +58,9 @@ export default async function DashboardPage() {
           </p>
         </div>
         <Badge variant={isPremium ? 'default' : 'secondary'} className={isPremium ? 'bg-amber-500' : ''}>
-          {!profile || profile.role === 'free' ? 'Ücretsiz Plan' :
-           profile.role === 'premium' ? 'Premium' :
-           profile.role === 'producer' ? 'Üretici' : 'Admin'}
+          {!profile || effectiveRole === 'free' ? 'Ücretsiz Plan' :
+           effectiveRole === 'premium' ? 'Premium' :
+           effectiveRole === 'producer' ? 'Üretici' : 'Admin'}
         </Badge>
       </div>
 
