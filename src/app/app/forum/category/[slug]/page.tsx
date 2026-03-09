@@ -1,8 +1,9 @@
+export const dynamic = 'force-dynamic'
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { MessageSquare, Pin, Lock, ArrowLeft } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/utils'
 
