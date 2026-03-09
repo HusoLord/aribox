@@ -5,8 +5,19 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Star, MapPin, Leaf, ShoppingBag, MessageSquare, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Star, MapPin, Leaf, ShoppingBag, MessageSquare, CheckCircle, UserCircle } from 'lucide-react'
 import { formatPrice, formatRelativeTime } from '@/lib/utils'
+
+interface ProducerProfile {
+  user_id: string
+  farm_name: string
+  location: string
+  description: string
+  is_verified: boolean
+  rating_avg: number
+  rating_count: number
+  users: { id: string; full_name: string; avatar_url: string | null }
+}
 
 interface Product {
   id: string
@@ -20,14 +31,7 @@ interface Product {
   is_organic: boolean
   rating: number
   review_count: number
-  producer_profiles: {
-    farm_name: string
-    location: string
-    description: string
-    is_verified: boolean
-    rating: number
-    users: { full_name: string; avatar_url: string | null }
-  }
+  producer_profiles: ProducerProfile
   product_reviews: Array<{
     id: string
     rating: number
@@ -51,7 +55,6 @@ export default function ProductDetailPage() {
       .catch(() => setLoading(false))
   }, [id])
 
-
   if (loading) {
     return (
       <div className="container max-w-3xl mx-auto p-4">
@@ -70,6 +73,9 @@ export default function ProductDetailPage() {
       </div>
     )
   }
+
+  const producer = product.producer_profiles
+  const producerUserId = producer?.user_id || producer?.users?.id
 
   return (
     <div className="container max-w-3xl mx-auto p-4 space-y-4">
@@ -131,27 +137,49 @@ export default function ProductDetailPage() {
 
           <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
 
-          {/* Uretici */}
-          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-            <div className="flex-1">
-              <div className="flex items-center gap-1">
-                <p className="text-sm font-medium">{product.producer_profiles?.farm_name}</p>
-                {product.producer_profiles?.is_verified && (
-                  <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+          {/* Üretici Kartı */}
+          <div className="p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <div className="flex items-center gap-1">
+                  <p className="text-sm font-medium">{producer?.farm_name}</p>
+                  {producer?.is_verified && (
+                    <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                  )}
+                </div>
+                {producer?.location && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                    <MapPin className="h-3 w-3" />
+                    {producer.location}
+                  </div>
+                )}
+                {(producer?.rating_avg ?? 0) > 0 && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                    <span>{Number(producer.rating_avg).toFixed(1)}</span>
+                    <span>({producer.rating_count} değerlendirme)</span>
+                  </div>
                 )}
               </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3" />
-                {product.producer_profiles?.location}
+              <div className="flex flex-col gap-1 shrink-0 items-end">
+                {producerUserId && (
+                  <Link
+                    href={`/app/users/${producerUserId}`}
+                    className="flex items-center gap-1 text-xs text-amber-600 hover:underline"
+                  >
+                    <UserCircle className="h-3.5 w-3.5" />
+                    Profil
+                  </Link>
+                )}
+                <Link
+                  href="/app/messages"
+                  className="flex items-center gap-1 text-xs text-amber-600 hover:underline"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  Mesaj
+                </Link>
               </div>
             </div>
-            <Link
-              href={`/api/messages?new=${product.producer_profiles?.users?.full_name}`}
-              className="flex items-center gap-1 text-xs text-amber-600 hover:underline"
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              Mesaj
-            </Link>
           </div>
 
           {/* Siparis */}

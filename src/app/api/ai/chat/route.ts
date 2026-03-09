@@ -2,31 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
 import { FREE_DAILY_QUESTION_LIMIT } from '@/lib/constants'
+import { getSystemPrompt } from '@/lib/ai-categories'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || 'mock_key',
 })
 
-const SYSTEM_PROMPT = `Sen ARIBox platformunun yapay zeka asistanı "ARI"sın. Türkiye'nin önde gelen arıcılık uzmanısın.
-
-UZMANLIK ALANLARIN:
-- Kovan Bakımı: Kontrol listeleri, bakım takvimi, kovan düzeni, çerçeve yönetimi
-- Ana Arı: Ana arı yetiştirme, değiştirme, işaretleme, kalite değerlendirme
-- Bal Hasadı: Hasat zamanlaması, süzme teknikleri, depolama, nem ölçümü
-- Arı Hastalıkları: Varroa, nosema, Amerikan yavru çürüklüğü, tedavi protokolleri
-- Çiçek ve Bitki: Nektar kaynakları, çiçeklenme takvimleri, bölgesel flora
-- Arı Ürünleri: Propolis, arı sütü, polen, bal mumu, apiterapi
-- Mevsimsel Yönetim: İlkbahar açılışı, yaz yönetimi, sonbahar hazırlığı, kışlama
-- Ekipman: Kovan tipleri (Langstroth, Dadant), koruyucu ekipman, hasat araçları
-- Mevzuat: Arıcılık yönetmeliği, gıda mevzuatı, desteklemeler, sigorta
-
-DAVRANIŞ KURALLARI:
-- Her zaman Türkçe konuş
-- Kısa, net ve pratik yanıtlar ver
-- Bilimsel bilgiyi kullanıcı dostu dille anlat
-- Tıbbi/veteriner konularda uzman görüşü öner
-- Arıcılık dışı konularda kibarca reddet
-- Kaynak ve referans göster (gerektiğinde)`
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -73,10 +54,13 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { messages, conversationId } = body as {
+  const { messages, conversationId, category } = body as {
     messages: Array<{ role: 'user' | 'assistant'; content: string }>
     conversationId?: string
+    category?: string
   }
+
+  const systemPrompt = getSystemPrompt(category)
 
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: 'Geçersiz mesaj formatı' }, { status: 400 })
@@ -92,7 +76,7 @@ export async function POST(request: NextRequest) {
     const stream = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 2048,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: messages.map(m => ({
         role: m.role,
         content: m.content,

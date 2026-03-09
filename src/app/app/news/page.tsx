@@ -6,10 +6,26 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Newspaper } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 export const metadata = { title: 'Haberler' }
 
-export default async function NewsPage() {
+const NEWS_CATEGORIES = [
+  { value: '', label: 'Tümü' },
+  { value: 'haberler', label: 'Haberler' },
+  { value: 'saglik', label: 'Sağlık' },
+  { value: 'mevzuat', label: 'Mevzuat' },
+  { value: 'teknoloji', label: 'Teknoloji' },
+  { value: 'pazar', label: 'Pazar' },
+  { value: 'etkinlikler', label: 'Etkinlikler' },
+]
+
+export default async function NewsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>
+}) {
+  const { category } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -23,11 +39,15 @@ export default async function NewsPage() {
   const isPremium = profile?.role !== 'free'
   const limit = isPremium ? 20 : 3
 
-  const { data: articles } = await supabase
+  let query = supabase
     .from('news_articles')
     .select('id, title, slug, summary, category, image_url, is_breaking, published_at')
     .order('published_at', { ascending: false })
     .limit(limit)
+
+  if (category) query = query.eq('category', category)
+
+  const { data: articles } = await query
 
   return (
     <div className="container max-w-3xl mx-auto p-4 space-y-4">
@@ -38,6 +58,24 @@ export default async function NewsPage() {
             Premium — Tümünü Gör
           </Link>
         )}
+      </div>
+
+      {/* Kategori Filtreleri */}
+      <div className="flex gap-2 flex-wrap">
+        {NEWS_CATEGORIES.map(cat => (
+          <Link
+            key={cat.value}
+            href={cat.value ? `/app/news?category=${cat.value}` : '/app/news'}
+            className={cn(
+              'px-3 h-7 rounded-full text-xs font-medium transition-colors border inline-flex items-center',
+              (category || '') === cat.value
+                ? 'bg-amber-500 text-white border-amber-500'
+                : 'border-border text-muted-foreground hover:border-amber-300 hover:text-foreground'
+            )}
+          >
+            {cat.label}
+          </Link>
+        ))}
       </div>
 
       {!isPremium && (
@@ -58,7 +96,7 @@ export default async function NewsPage() {
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-4 flex gap-4">
                   {article.image_url && (
-                    <div className="w-20 h-16 bg-muted rounded-lg shrink-0 overflow-hidden">
+                    <div className="relative w-20 h-16 bg-muted rounded-lg shrink-0 overflow-hidden">
                       <Image
                         src={article.image_url}
                         alt={article.title}
@@ -91,7 +129,9 @@ export default async function NewsPage() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-2 p-12 text-center">
             <Newspaper className="h-8 w-8 text-muted-foreground" />
-            <p className="text-muted-foreground">Henüz haber yok</p>
+            <p className="text-muted-foreground">
+              {category ? `"${category}" kategorisinde haber bulunamadı` : 'Henüz haber yok'}
+            </p>
           </CardContent>
         </Card>
       )}

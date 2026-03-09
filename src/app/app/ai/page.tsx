@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Plus, Bot, User } from 'lucide-react'
+import { Send, Plus, Bot, User, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { AI_CATEGORIES, type AICategory } from '@/lib/ai-categories'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -36,6 +37,8 @@ export default function AIPage() {
   const [currentConvId, setCurrentConvId] = useState<string | null>(null)
   const [quota, setQuota] = useState<QuotaInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<AICategory | null>(null)
+  const [showCategoryPicker, setShowCategoryPicker] = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const loadQuota = useCallback(async () => {
@@ -56,6 +59,14 @@ export default function AIPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  function selectCategory(cat: AICategory | null) {
+    setSelectedCategory(cat)
+    setShowCategoryPicker(false)
+    setMessages([])
+    setCurrentConvId(null)
+    setError(null)
+  }
 
   async function startNewConversation() {
     const res = await fetch('/api/ai/conversations', {
@@ -86,7 +97,6 @@ export default function AIPage() {
     setLoading(true)
     setError(null)
 
-    // İlk mesajda konuşma oluştur
     let convId = currentConvId
     if (!convId) {
       const res = await fetch('/api/ai/conversations', {
@@ -111,6 +121,7 @@ export default function AIPage() {
         body: JSON.stringify({
           messages: allMessages.map(m => ({ role: m.role, content: m.content })),
           conversationId: convId,
+          category: selectedCategory?.id ?? null,
         }),
       })
 
@@ -121,7 +132,6 @@ export default function AIPage() {
         return
       }
 
-      // Streaming yanıt okuma
       const reader = res.body?.getReader()
       if (!reader) return
 
@@ -178,18 +188,83 @@ export default function AIPage() {
     }
   }
 
-  const suggestedQuestions = [
-    'Varroa tedavisinde hangi yöntemi kullanmalıyım?',
-    'İlkbahar kovan kontrolünde nelere dikkat etmeli?',
-    'Ana arı nasıl değiştirilir?',
-    'Bal hasadı için en uygun zaman nedir?',
-  ]
+  // Kategori seçim ekranı
+  if (showCategoryPicker) {
+    return (
+      <div className="container max-w-3xl mx-auto p-4 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-amber-100 rounded-xl">
+            <Bot className="h-6 w-6 text-amber-600" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold">ARI — Arıcılık Asistanı</h1>
+            <p className="text-sm text-muted-foreground">Hangi konuda yardım almak istersiniz?</p>
+          </div>
+          <Link
+            href="/app/ai/diagnose"
+            className="ml-auto text-xs bg-orange-50 text-orange-700 px-3 py-1.5 rounded-lg font-medium hover:bg-orange-100 transition-colors"
+          >
+            Hastalık Teşhisi
+          </Link>
+        </div>
 
+        {quota && quota.role === 'free' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-amber-800 font-medium">
+                Günlük {quota.remaining}/{quota.daily_limit} soru hakkınız kaldı
+              </p>
+              <Link href="/app/subscription" className="text-xs text-amber-600 hover:underline">
+                Premium&apos;a geç →
+              </Link>
+            </div>
+            <div className="w-24 bg-amber-100 rounded-full h-2">
+              <div
+                className="bg-amber-500 h-2 rounded-full transition-all"
+                style={{ width: `${((quota.used || 0) / (quota.daily_limit || 10)) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {AI_CATEGORIES.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => selectCategory(cat)}
+              className="text-left p-4 rounded-xl border border-border hover:border-amber-300 hover:bg-amber-50 transition-all group"
+            >
+              <div className="text-2xl mb-2">{cat.icon}</div>
+              <p className="font-medium text-sm group-hover:text-amber-700">{cat.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{cat.description}</p>
+            </button>
+          ))}
+          <button
+            onClick={() => selectCategory(null)}
+            className="text-left p-4 rounded-xl border border-dashed border-border hover:border-amber-300 hover:bg-amber-50 transition-all group"
+          >
+            <div className="text-2xl mb-2">💬</div>
+            <p className="font-medium text-sm group-hover:text-amber-700">Genel Soru</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Tüm arıcılık konularında serbest sohbet</p>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Sohbet ekranı
   return (
     <div className="flex h-[calc(100vh-56px)] overflow-hidden">
-      {/* Sidebar — sohbet geçmişi */}
+      {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-64 border-r bg-muted/30 shrink-0">
-        <div className="p-3 border-b">
+        <div className="p-3 border-b space-y-2">
+          <button
+            onClick={() => setShowCategoryPicker(true)}
+            className="flex items-center gap-2 w-full rounded-lg border border-border hover:bg-muted px-3 h-8 text-sm transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Kategori Değiştir
+          </button>
           <button
             onClick={startNewConversation}
             className="flex items-center gap-2 w-full rounded-lg bg-amber-500 hover:bg-amber-600 text-white px-3 h-8 text-sm font-medium transition-colors"
@@ -238,14 +313,25 @@ export default function AIPage() {
 
       {/* Ana sohbet alanı */}
       <div className="flex flex-col flex-1 min-w-0">
-        {/* Header */}
         <div className="border-b px-4 py-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCategoryPicker(true)}
+              className="md:hidden p-1.5 rounded-lg hover:bg-muted"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
             <div className="p-1.5 bg-amber-100 rounded-lg">
-              <Bot className="h-4 w-4 text-amber-600" />
+              {selectedCategory ? (
+                <span className="text-base leading-none">{selectedCategory.icon}</span>
+              ) : (
+                <Bot className="h-4 w-4 text-amber-600" />
+              )}
             </div>
             <div>
-              <h1 className="font-semibold text-sm">ARI — Arıcılık Asistanı</h1>
+              <h1 className="font-semibold text-sm">
+                {selectedCategory ? selectedCategory.label : 'Genel'} Asistanı
+              </h1>
               <p className="text-xs text-muted-foreground">Claude Sonnet ile çalışır</p>
             </div>
           </div>
@@ -257,29 +343,23 @@ export default function AIPage() {
           </Link>
         </div>
 
-        {/* Mesajlar */}
         <ScrollArea className="flex-1 px-4">
           <div className="max-w-3xl mx-auto py-4 space-y-4">
             {messages.length === 0 && (
               <div className="text-center py-8">
                 <div className="p-4 bg-amber-50 rounded-2xl inline-block mb-4">
-                  <Bot className="h-10 w-10 text-amber-500" />
+                  {selectedCategory ? (
+                    <span className="text-4xl">{selectedCategory.icon}</span>
+                  ) : (
+                    <Bot className="h-10 w-10 text-amber-500" />
+                  )}
                 </div>
-                <h2 className="font-semibold mb-2">Merhaba! Ben ARI.</h2>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Arıcılık konusunda her sorunuzda yardımcıyım.
+                <h2 className="font-semibold mb-2">
+                  {selectedCategory ? selectedCategory.label : 'Genel Arıcılık'} Asistanı
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedCategory ? selectedCategory.description : 'Tüm arıcılık konularında yardımcıyım.'}
                 </p>
-                <div className="grid sm:grid-cols-2 gap-2 max-w-md mx-auto">
-                  {suggestedQuestions.map(q => (
-                    <button
-                      key={q}
-                      onClick={() => setInput(q)}
-                      className="text-left text-xs p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
-                    >
-                      {q}
-                    </button>
-                  ))}
-                </div>
               </div>
             )}
 
@@ -334,14 +414,17 @@ export default function AIPage() {
           </div>
         </ScrollArea>
 
-        {/* Input */}
         <div className="border-t p-4 shrink-0">
           <div className="max-w-3xl mx-auto flex gap-2 items-end">
             <Textarea
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Arıcılık sorunuzu yazın... (Enter ile gönder)"
+              placeholder={
+                selectedCategory
+                  ? `${selectedCategory.label} hakkında sorun...`
+                  : 'Arıcılık sorunuzu yazın...'
+              }
               className="resize-none min-h-[44px] max-h-32"
               rows={1}
             />

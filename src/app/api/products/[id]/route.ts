@@ -9,7 +9,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
     .from('products')
     .select(`
       *,
-      producer_profiles(farm_name, location, description, is_verified, rating, users(full_name, avatar_url)),
+      producer_profiles(user_id, farm_name, location, description, is_verified, rating_avg, rating_count, users(id, full_name, avatar_url)),
       product_reviews(id, rating, comment, created_at, users(full_name))
     `)
     .eq('id', id)
