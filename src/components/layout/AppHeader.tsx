@@ -14,18 +14,22 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { useUser } from '@/hooks/useUser'
-import { createClient } from '@/lib/supabase/client'
 
 export default function AppHeader() {
   const { profile } = useUser()
 
   async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.href = '/login'
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error('Logout error', error)
+    } finally {
+      window.location.href = '/login'
+    }
   }
-
-
 
   const initials = profile?.full_name
     ?.split(' ')
@@ -98,7 +102,10 @@ export default function AppHeader() {
               <DropdownMenuItem
                 variant="destructive"
                 className="cursor-pointer text-red-600 focus:text-red-600"
-                onClick={(e) => { e.preventDefault(); handleLogout() }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleLogout()
+                }}
               >
                 Çıkış Yap
               </DropdownMenuItem>
@@ -109,3 +116,4 @@ export default function AppHeader() {
     </header>
   )
 }
+
