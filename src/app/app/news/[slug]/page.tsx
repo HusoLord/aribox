@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { BookmarkButton } from '@/components/news/BookmarkButton'
 
 export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -33,6 +34,15 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
 
   if (!article) notFound()
 
+  const { data: existingBookmark } = await supabase
+    .from('news_bookmarks')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('article_id', article.id)
+    .maybeSingle()
+
+  const isBookmarked = !!existingBookmark
+
   return (
     <div className="container max-w-2xl mx-auto p-4 space-y-4">
       <Link href="/app/news" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
@@ -41,12 +51,15 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
       </Link>
 
       <article className="space-y-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-between">
+          <div className="flex items-center gap-2">
           {article.is_breaking && (
             <Badge className="bg-red-500 text-white">Son Dakika</Badge>
           )}
           <Badge variant="outline">{article.category}</Badge>
           <span className="text-sm text-muted-foreground">{formatDate(article.published_at)}</span>
+          </div>
+          <BookmarkButton articleId={article.id} initialBookmarked={isBookmarked} />
         </div>
 
         <h1 className="text-2xl font-bold">{article.title}</h1>

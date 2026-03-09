@@ -41,6 +41,15 @@ export default async function FeedPage() {
             </Link>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="p-4 space-y-2 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Örnek Akış</p>
+            <p>
+              Şu anda bu sayfadaki aktiviteler <span className="font-semibold">örnek</span> amaçlıdır. Gerçek kullanıcılar
+              birbirini takip etmeye başladığında Sosyal Akış, topluluk paylaşımlarıyla otomatik olarak dolacaktır.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     )
   }
