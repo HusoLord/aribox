@@ -14,9 +14,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { useUser } from '@/hooks/useUser'
+import { createClient } from '@/lib/supabase/client'
 
 export default function AppHeader() {
   const { profile } = useUser()
+
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
 
 
 
@@ -89,13 +96,9 @@ export default function AppHeader() {
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault()
-                  fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
-                    window.location.href = '/login'
-                  })
-                }}
-                className="text-red-600 cursor-pointer"
+                variant="destructive"
+                className="cursor-pointer text-red-600 focus:text-red-600"
+                onClick={(e) => { e.preventDefault(); handleLogout() }}
               >
                 Çıkış Yap
               </DropdownMenuItem>
