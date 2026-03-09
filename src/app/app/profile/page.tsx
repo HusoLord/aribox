@@ -34,6 +34,8 @@ export default function ProfilePage() {
   const [form, setForm] = useState({ full_name: '', bio: '', username: '', phone: '', city: '' })
   const avatarRef = useRef<HTMLInputElement>(null)
   const coverRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
+  const [gallery, setGallery] = useState<string[]>([])
 
   useEffect(() => {
     async function load() {
@@ -50,6 +52,21 @@ export default function ProfilePage() {
       setHiveCount(hc || 0)
       setForumCount(fc || 0)
       if (p) setForm({ full_name: p.full_name || '', bio: p.bio || '', username: p.username || '', phone: p.phone || '', city: p.city || '' })
+
+      // Profil galerisi: forum-media bucket'ında saklanan görselleri listele
+      const { data: files } = await supabase.storage
+        .from('forum-media')
+        .list(`${user.id}/profile-gallery`, { limit: 20, sortBy: { column: 'created_at', order: 'desc' } })
+
+      if (files && files.length > 0) {
+        const urls = files.map(file => {
+          const { data: { publicUrl } } = supabase.storage
+            .from('forum-media')
+            .getPublicUrl(`${user.id}/profile-gallery/${file.name}`)
+          return publicUrl
+        })
+        setGallery(urls)
+      }
     }
     load()
   }, [])
@@ -83,6 +100,30 @@ export default function ProfilePage() {
     if (!res.ok) { toast.error(data.error || 'Yükleme başarısız'); return }
     setProfile(prev => prev ? { ...prev, [type === 'cover' ? 'cover_photo_url' : 'avatar_url']: data.url } : prev)
     toast.success(type === 'cover' ? 'Kapak güncellendi' : 'Avatar güncellendi')
+  }
+
+  async function handleGalleryUpload(files: FileList) {
+    const uploading = Array.from(files).slice(0, 6) // aynı anda en fazla 6
+    const urls: string[] = []
+
+    for (const file of uploading) {
+      const fd = new FormData()
+      fd.append('file', file)
+      const toastId = toast.loading('Fotoğraf yükleniyor...')
+      const res = await fetch('/api/profile/gallery', { method: 'POST', body: fd })
+      const data = await res.json()
+      toast.dismiss(toastId)
+      if (res.ok && data.url) {
+        urls.push(data.url)
+      } else {
+        toast.error(data.error || 'Fotoğraf yüklenemedi')
+      }
+    }
+
+    if (urls.length > 0) {
+      setGallery(prev => [...urls, ...prev].slice(0, 20))
+      toast.success('Profil galerisi güncellendi')
+    }
   }
 
   if (!profile) {
@@ -223,6 +264,51 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Profil Galerisi */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-sm">Profil Galerisi</CardTitle>
+          <button
+            type="button"
+            onClick={() => galleryRef.current?.click()}
+            className="flex items-center gap-1.5 text-xs border rounded-lg px-3 h-8 hover:bg-muted transition-colors"
+          >
+            <Camera className="h-3.5 w-3.5" />
+            Fotoğraf Ekle
+          </button>
+          <input
+            ref={galleryRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={e => e.target.files && e.target.files.length > 0 && handleGalleryUpload(e.target.files)}
+          />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {gallery.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              Henüz profil galeriniz boş. Buraya eklediğiniz fotoğraflar sadece ARIBox profil sayfanızda görünür ve şu an için
+              <span className="font-semibold"> demo amaçlı</span> olarak saklanır.
+            </p>
+          ) : (
+            <>
+              <p className="text-xs text-muted-foreground">
+                Bu fotoğraflar profilinizi zenginleştirmek için eklenmiştir. Örnek ya da gerçek kovan/fotoğraf içerikleri
+                paylaşabilirsiniz.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {gallery.map(url => (
+                  <div key={url} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                    <Image src={url} alt="Profil fotoğrafı" fill className="object-cover" />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Hesap Detayları */}
       <Card>
