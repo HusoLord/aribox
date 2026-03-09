@@ -1,5 +1,5 @@
 export const ADMIN_EMAIL = 'vizara34@gmail.com'
-export const DEFAULT_USER_ROLE: 'premium' = 'premium'
+export const DEFAULT_USER_ROLE = 'premium' as const
 
 export const APP_NAME = 'ARIBox'
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
