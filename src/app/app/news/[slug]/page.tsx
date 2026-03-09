@@ -6,7 +6,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
-import NewsComments from '@/components/NewsComments'
 
 export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -89,7 +88,6 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
         )}
       </article>
 
-      <NewsComments articleId={article.id} currentUserId={user.id} />
     </div>
   )
 }
