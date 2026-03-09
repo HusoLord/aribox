@@ -39,9 +39,18 @@ export default function RegisterPage() {
     })
 
     if (error) {
-      setError(error.message === 'User already registered'
-        ? 'Bu e-posta adresi zaten kayıtlı.'
-        : 'Kayıt sırasında bir hata oluştu.')
+      const msg = error.message
+      if (msg === 'User already registered') {
+        setError('Bu e-posta adresi zaten kayıtlı.')
+      } else if (msg.includes('rate') || msg.includes('over_email_send_rate_limit') || error.status === 429) {
+        setError('Çok fazla deneme yapıldı. Lütfen birkaç dakika bekleyip tekrar deneyin.')
+      } else if (msg.includes('invalid') && msg.includes('email')) {
+        setError('Geçersiz e-posta adresi.')
+      } else if (msg.includes('password') && msg.includes('6')) {
+        setError('Şifre en az 6 karakter olmalıdır.')
+      } else {
+        setError('Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.')
+      }
       setLoading(false)
       return
     }

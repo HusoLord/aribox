@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { useUser } from '@/hooks/useUser'
-import { createClient } from '@/lib/supabase/client'
 
 export default function AppHeader() {
   const { profile } = useUser()
@@ -90,14 +89,11 @@ export default function AppHeader() {
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onSelect={async (e) => {
+                onSelect={(e) => {
                   e.preventDefault()
-                  try {
-                    const supabase = createClient()
-                    await supabase.auth.signOut()
-                  } finally {
+                  fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
                     window.location.href = '/login'
-                  }
+                  })
                 }}
                 className="text-red-600 cursor-pointer"
               >

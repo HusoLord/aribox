@@ -103,7 +103,7 @@ export default async function UserProfilePage({
           ) : (
             <>
               <FollowButton targetUserId={id} initialFollowing={isFollowing} />
-              <Link href={`/app/messages?to=${id}`} className="flex items-center gap-1.5 text-sm border rounded-lg px-3 h-8 hover:bg-muted transition-colors">
+              <Link href={`/app/messages?with=${id}`} className="flex items-center gap-1.5 text-sm border rounded-lg px-3 h-8 hover:bg-muted transition-colors">
                 <MessageSquare className="h-3.5 w-3.5" /> Mesaj
               </Link>
             </>
