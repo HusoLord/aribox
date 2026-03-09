@@ -19,11 +19,7 @@ import { createClient } from '@/lib/supabase/client'
 export default function AppHeader() {
   const { profile } = useUser()
 
-  async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.href = '/login'
-  }
+
 
   const initials = profile?.full_name
     ?.split(' ')
@@ -68,8 +64,8 @@ export default function AppHeader() {
                     {profile?.role && (
                       <Badge variant="secondary" className="w-fit text-xs capitalize">
                         {profile.role === 'free' ? 'Ücretsiz' :
-                         profile.role === 'premium' ? 'Premium' :
-                         profile.role === 'producer' ? 'Üretici' : 'Admin'}
+                          profile.role === 'premium' ? 'Premium' :
+                            profile.role === 'producer' ? 'Üretici' : 'Admin'}
                       </Badge>
                     )}
                   </div>
@@ -93,7 +89,18 @@ export default function AppHeader() {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => handleLogout()} className="text-red-600 cursor-pointer">
+              <DropdownMenuItem
+                onSelect={async (e) => {
+                  e.preventDefault()
+                  try {
+                    const supabase = createClient()
+                    await supabase.auth.signOut()
+                  } finally {
+                    window.location.href = '/login'
+                  }
+                }}
+                className="text-red-600 cursor-pointer"
+              >
                 Çıkış Yap
               </DropdownMenuItem>
             </DropdownMenuContent>
